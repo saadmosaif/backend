@@ -15,6 +15,7 @@ public class Meeting {
 
     private LocalDateTime createdAt;
 
+    @Column(name = "host_username", nullable = false)
     private String host;
 
     public Meeting() {

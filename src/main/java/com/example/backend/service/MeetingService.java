@@ -2,28 +2,43 @@ package com.example.backend.service;
 
 import com.example.backend.model.Meeting;
 import com.example.backend.repository.MeetingRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class MeetingService {
-    private final MeetingRepository meetingRepository;
 
-    public MeetingService(MeetingRepository meetingRepository) {
-        this.meetingRepository = meetingRepository;
-    }
-
-    public Meeting createMeeting(Meeting meeting) {
-        return meetingRepository.save(meeting);
-    }
+    @Autowired
+    private MeetingRepository meetingRepository;
 
     public List<Meeting> getAllMeetings() {
         return meetingRepository.findAll();
     }
 
-    public Optional<Meeting> getMeetingById(Long id) {
-        return meetingRepository.findById(id);
+    public Meeting findMeetingById(Long id) {
+        // Ensure the meeting exists
+        return meetingRepository.findById(id).orElseThrow(() -> new RuntimeException("Meeting not found"));
+    }
+
+
+    public Meeting saveMeeting(Meeting meeting) {
+        return meetingRepository.save(meeting);
+    }
+
+    public Meeting updateMeeting(Long id, Meeting meeting) {
+        Meeting existingMeeting = meetingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Meeting not found"));
+
+        // Update fields
+        existingMeeting.setTitle(meeting.getTitle());
+        existingMeeting.setDescription(meeting.getDescription());
+        // Preserve existing createdAt and host fields
+        return meetingRepository.save(existingMeeting);
+    }
+
+    public void deleteMeeting(Long id) {
+        meetingRepository.deleteById(id);
     }
 }
