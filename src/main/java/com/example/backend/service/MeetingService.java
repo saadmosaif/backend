@@ -6,12 +6,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MeetingService {
 
     @Autowired
     private MeetingRepository meetingRepository;
+
+    public Optional<Meeting> findById(Long id) {
+        return meetingRepository.findById(id);
+    }
+
 
     public List<Meeting> getAllMeetings() {
         return meetingRepository.findAll();
@@ -22,7 +28,18 @@ public class MeetingService {
         return meetingRepository.findById(id).orElseThrow(() -> new RuntimeException("Meeting not found"));
     }
 
+    public Meeting save(Meeting meeting) {
+        return meetingRepository.save(meeting);
+    }
 
+    public void validateOwnership(Long meetingId, String username) {
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new RuntimeException("Meeting not found"));
+
+        if (!meeting.getHost().equals(username)) {
+            throw new RuntimeException("Unauthorized to modify this meeting");
+        }
+    }
     public Meeting saveMeeting(Meeting meeting) {
         return meetingRepository.save(meeting);
     }

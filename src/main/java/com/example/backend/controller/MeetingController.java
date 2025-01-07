@@ -1,9 +1,10 @@
 package com.example.backend.controller;
-
+import com.example.backend.util.JwtUtil;
 import com.example.backend.model.Meeting;
 import com.example.backend.repository.MeetingRepository;
 import com.example.backend.service.MeetingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/meetings")
@@ -20,6 +23,8 @@ public class MeetingController {
     @Autowired
     private MeetingService meetingService;
 
+    @Autowired
+    private JwtUtil jwtUtil; // Inject JwtUtil instance
     @Autowired
     private MeetingRepository meetingRepository;
 
@@ -48,16 +53,35 @@ public class MeetingController {
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Meeting> updateMeeting(@PathVariable Long id, @RequestBody Meeting meeting) {
-        Meeting updatedMeeting = meetingService.updateMeeting(id, meeting);
-        return ResponseEntity.ok(updatedMeeting);
-    }
 
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateMeeting(@PathVariable Long id, @RequestBody Meeting updatedMeeting, @RequestHeader("Authorization") String token) {
+        String username = jwtUtil.extractUsername(token.substring(7)); // Call method on instance
+        Meeting existingMeeting = meetingService.findById(id)
+                .orElseThrow(() -> new RuntimeException("Meeting not found"));
+
+        if (!existingMeeting.getHost().equals(username)) {
+            return ResponseEntity.status(403).body("You are not authorized to edit this meeting.");
+        }
+
+        existingMeeting.setTitle(updatedMeeting.getTitle());
+        existingMeeting.setDescription(updatedMeeting.getDescription());
+        meetingService.save(existingMeeting);
+
+        return ResponseEntity.ok(existingMeeting);
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMeeting(@PathVariable Long id) {
         meetingService.deleteMeeting(id);
-        return ResponseEntity.ok("Meeting deleted successfully");
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Meeting deleted successfully.");
+        return ResponseEntity.ok(response);
     }
+
+
+
+
+
 }

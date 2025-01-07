@@ -14,11 +14,17 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private final String SECRET_KEY = "6IuvF0JhRzBtXGJXCLtxPLtD1M0qIw7zctMWwPv1NEs=\n"; // Replace with your actual secret key
+    private static final String SECRET_KEY = "6IuvF0JhRzBtXGJXCLtxPLtD1M0qIw7zctMWwPv1NEs=\n"; // Replace with your actual secret key
 
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+    public static String extractUsername(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey( SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
+
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
