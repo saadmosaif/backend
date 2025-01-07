@@ -2,7 +2,6 @@ package com.example.backend.service;
 
 import com.example.backend.model.User;
 import com.example.backend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -11,23 +10,24 @@ import java.util.Optional;
 @Service
 public class AuthService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public User register(User user) {
-        // Encrypt the password before saving
-        String rawPassword = user.getPassword();
-        String encodedPassword = passwordEncoder.encode(rawPassword);
-        user.setPassword(encodedPassword);
+        user.setPassword(passwordEncoder.encode(user.getPassword())); // Encrypt password
         return userRepository.save(user);
     }
 
-
     public Optional<User> login(String username, String password) {
-        return userRepository.findByUsername(username)
-                .filter(user -> passwordEncoder.matches(password, user.getPassword())); // Verify password
+        Optional<User> user = userRepository.findByUsername(username);
+        if (user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())) {
+            return user;
+        }
+        return Optional.empty();
     }
 }
