@@ -18,6 +18,10 @@ public class Meeting {
     @Column(name = "host_username", nullable = false)
     private String host;
 
+    private String videoCallUrl; // The link to join the video call
+    private boolean isVideoEnabled; // Indicates if video is enabled for this meeting
+
+
     public Meeting() {
         this.createdAt = LocalDateTime.now();
     }
@@ -61,5 +65,22 @@ public class Meeting {
 
     public void setHost(String host) {
         this.host = host;
+    }
+
+    // Getters and Setters for new fields
+    public String getVideoCallUrl() {
+        return videoCallUrl;
+    }
+
+    public void setVideoCallUrl(String videoCallUrl) {
+        this.videoCallUrl = videoCallUrl;
+    }
+
+    public boolean isVideoEnabled() {
+        return isVideoEnabled;
+    }
+
+    public void setVideoEnabled(boolean videoEnabled) {
+        isVideoEnabled = videoEnabled;
     }
 }
